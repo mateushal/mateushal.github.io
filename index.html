@@ -1,122 +1,66 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clube dos Influenciadores - Nosso Casting</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #1a1a1a;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            text-align: center;
-        }
-        .title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #FFD700;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            font-size: 1.1rem;
-            font-weight: 400;
-            color: #ccc;
-            margin-bottom: 40px;
-        }
-        .loading {
-            font-size: 1.5rem;
-            color: #FFD700;
-        }
-        #gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-        .profile-card {
-            background-color: #2a2a2a;
-            border-radius: 10px;
-            overflow: hidden;
-            text-decoration: none;
-            color: #fff;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        .profile-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 12px 24px rgba(255, 215, 0, 0.2);
-        }
-        .profile-pic {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-        }
-        .profile-info {
-            padding: 15px;
-        }
-        .profile-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin: 0;
-        }
-        .profile-username {
-            font-size: 0.9rem;
-            color: #FFD700;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
+document.addEventListener('DOMContentLoaded', async function() {
+    const gallery = document.getElementById('gallery-grid');
+    gallery.innerHTML = '<p class="loading">Carregando perfis do Airtable...</p>';
 
-    <div class="container">
-        <h1 class="title">Clube dos Influenciadores</h1>
-        <p class="subtitle">Conheça o nosso time de talentos incríveis!</p>
+    // --- PREENCHA SUAS INFORMAÇÕES AQUI ---
+    const AIRTABLE_BASE_ID = "appGVfd7QZoxmmfTA";
+    const AIRTABLE_TABLE_NAME = "Casting Clube dos Influenciadores"; // <-- MUDE AQUI se o nome da sua tabela for outro
+    const AIRTABLE_TOKEN = "patx6dEv96WbIepLO.39ee58838cc00464a536f5c670e071d83e5631027b1775dab69bb17170b8fe74";    // <-- MUDE AQUI para a sua chave "pat..."
 
-        <div id="gallery-grid">
-            <p class="loading">Carregando perfis...</p>
-        </div>
-    </div>
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const profiles = [
-                // Adicione os perfis aqui no formato:
-                // { name: "Nome do Influenciador", username: "@usuario", imageUrl: "link_da_imagem.jpg", profileUrl: "link_do_perfil" },
-                { name: "Jessica Dantas", username: "@eujessicadantas", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/eujessicadantas" },
-                { name: "Bruno Berti", username: "@brunoberti", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/brunoberti" },
-                { name: "Luara", username: "@luara", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/luara" },
-                { name: "Enzo", username: "@enzo", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/enzo" },
-                { name: "Clara Garcia", username: "@clara", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/clara" },
-                { name: "Vanessa Lopes", username: "@vanessalopesr_", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/vanessalopesr_" },
-                { name: "Juliano Floss", username: "@julianofloss", imageUrl: "https://via.placeholder.com/250", profileUrl: "https://instagram.com/julianofloss" },
-            ];
-
-            const gallery = document.getElementById('gallery-grid');
-            gallery.innerHTML = ''; // Limpa a mensagem de "Carregando"
-
-            profiles.forEach(profile => {
-                const card = `
-                    <a href="${profile.profileUrl}" target="_blank" class="profile-card">
-                        <img src="${profile.imageUrl}" alt="Foto de ${profile.name}" class="profile-pic">
-                        <div class="profile-info">
-                            <h3 class="profile-name">${profile.name}</h3>
-                            <p class="profile-username">${profile.username}</p>
-                        </div>
-                    </a>
-                `;
-                gallery.innerHTML += card;
-            });
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${AIRTABLE_TOKEN}`
+            }
         });
-    </script>
 
-</body>
-</html>
+        if (!response.ok) { throw new Error('Falha ao buscar dados.'); }
+
+        const data = await response.json();
+        gallery.innerHTML = ''; // Limpa a mensagem
+
+        data.records.forEach(record => {
+    const fields = record.fields;
+
+    // --- NOMES DAS COLUNAS CORRIGIDOS ---
+    const nome = fields.Nome;
+    const linkPerfil = fields.Instagram;
+    const imagemUrl = fields['Foto Principal'] ? fields['Foto Principal'][0].url : 'https://via.placeholder.com/250';
+
+    // Pega o username a partir do link do Instagram
+    let username = 'sem-user'; // Valor padrão caso o link seja inválido
+    if (linkPerfil) {
+        // Tenta extrair a última parte da URL
+        const partes = linkPerfil.split('/').filter(Boolean);
+        username = '@' + partes[partes.length - 1];
+    }
+
+    const cardHTML = `
+        <a href="${linkPerfil}" target="_blank" class="profile-card">
+            <img src="${imagemUrl}" alt="Foto de ${nome}" class="profile-pic">
+            <div class="profile-info">
+                <h3 class="profile-name">${nome}</h3>
+                <p class="profile-username">${username}</p>
+            </div>
+        </a>
+    `;
+    gallery.innerHTML += cardHTML;
+});`
+                <a href="${linkPerfil}" target="_blank" class="profile-card">
+                    <img src="${imagemUrl}" alt="Foto de ${nome}" class="profile-pic">
+                    <div class="profile-info">
+                        <h3 class="profile-name">${nome}</h3>
+                        <p class="profile-username">@${username}</p>
+                    </div>
+                </a>
+            `;
+            gallery.innerHTML += cardHTML;
+        });
+
+    } catch (error) {
+        console.error(error);
+        gallery.innerHTML = '<p class="loading" style="color: red;">Erro ao carregar perfis.</p>';
+    }
+});
